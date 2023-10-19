@@ -24,6 +24,9 @@
 - PETE 필라멘트 재활용기
 > `C++` Timer 셋을 활용한 함수 병렬 사용/ 사용자 반응 수집
 
+- Pi Nas 개인형 나스서버 구축(진행중)
+> `Linux` 서버 구축 및 관리
+
 <!--
 **KimEC995/KimEC995** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 
