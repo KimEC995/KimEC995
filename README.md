@@ -42,16 +42,41 @@ Here are some ideas to get you started:
 - 😄 Pronouns: ...
 - ⚡ Fun fact: ...
 
-# include"cuda_runtime.h"
-# include"device_launch_parameters.h"
+#include "cuda_runtime.h"
+#include "device_launch_parameters.h"
+#include <iostream>
+
+void checkDeviceMemory(void)
+{
+	size_t free, total;
+	cudaMemGetInfo(&free, &total);
+	printf("Device memory (free/total) = %lld/%lld bytes\n", free, total);
+}
 
 int main(void)
 {
-	//초기화. 포인터 변수
-    int *dDataPtr;
-    
-    //Device 메모리 할당(주소, int형 32개 공간만큼)
-    cudaMalloc(&dDataPtr, sizeof(int)*32);
+	int* dDataPtr;
+	cudaError_t errorCode;
+
+	checkDeviceMemory();
+	errorCode = cudaMalloc(&dDataPtr, sizeof(int) * 1024 * 1024);
+	printf("cudaMalloc - %s\n", cudaGetErrorName(errorCode));
+	checkDeviceMemory();
+
+	errorCode = cudaMemset(dDataPtr, 0, sizeof(int) * 1024 * 1024);
+	printf("cudaMemset - %s\n", cudaGetErrorName(errorCode));
+
+	errorCode = cudaFree(dDataPtr);
+	printf("cudaFree - %s\n", cudaGetErrorName(errorCode));
+	checkDeviceMemory();
 }
+
+Device memory(free / total) = 7506755584 / 8589475840 bytes
+cudaMalloc - cudaSuccess
+Device memory(free / total) = 7502561280 / 8589475840 bytes
+cudaMemset - cudaSuccess
+cudaFree - cudaSuccess
+Device memory(free / total) = 7506755584 / 8589475840 bytes
+
 
 -->
