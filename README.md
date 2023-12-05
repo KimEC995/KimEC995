@@ -28,25 +28,6 @@
 
 - Pi Nas 개인형 나스서버 구축
 > `Linux` 서버 구축 및 관리
-
-
-# include"cuda_runtime.h"
-# include"device_launch_parameters.h"
-# include <stdio.h>
-
-__global__ void helloCUDA(void)
-{
-	printf("Hello CUDA from GPU!\n");
-}
-
-int main(void)
-{
-	printf("Hello CUDA from GPU!\n");
-    helloCUDA<<<1, 10>>>();
-    return 0;
-}
-
-
 <!--
 **KimEC995/KimEC995** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 
@@ -60,4 +41,17 @@ Here are some ideas to get you started:
 - 📫 How to reach me: ...
 - 😄 Pronouns: ...
 - ⚡ Fun fact: ...
+
+# include"cuda_runtime.h"
+# include"device_launch_parameters.h"
+
+int main(void)
+{
+	//초기화. 포인터 변수
+    int *dDataPtr;
+    
+    //Device 메모리 할당(주소, int형 32개 공간만큼)
+    cudaMalloc(&dDataPtr, sizeof(int)*32);
+}
+
 -->
