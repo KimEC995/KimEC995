@@ -44,39 +44,52 @@ Here are some ideas to get you started:
 
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
-#include <iostream>
+#include <stdio.h>
 
-void checkDeviceMemory(void)
+__global__ void printData(int* _dDataPtr)
 {
-	size_t free, total;
-	cudaMemGetInfo(&free, &total);
-	printf("Device memory (free/total) = %lld/%lld bytes\n", free, total);
+	printf("%d", _dDataPtr[threadIdx.x]);
+}
+
+__global__ void setData(int* _dDataPtr)
+{
+	_dDataPtr[threadIdx.x] = 2;
 }
 
 int main(void)
 {
+	int data[10] = { 0 };
+	for (int i = 0; i < 10; i++) data[i] = 1;
+
 	int* dDataPtr;
-	cudaError_t errorCode;
 
-	checkDeviceMemory();
-	errorCode = cudaMalloc(&dDataPtr, sizeof(int) * 1024 * 1024);
-	printf("cudaMalloc - %s\n", cudaGetErrorName(errorCode));
-	checkDeviceMemory();
+	// 메모리 공간 할당. dDataPtr int 10만큼
+	cudaMalloc(&dDataPtr, sizeof(int) * 10);
 
-	errorCode = cudaMemset(dDataPtr, 0, sizeof(int) * 1024 * 1024);
-	printf("cudaMemset - %s\n", cudaGetErrorName(errorCode));
+	// 초기화
+	cudaMemset(dDataPtr, 0, sizeof(int) * 10);
 
-	errorCode = cudaFree(dDataPtr);
-	printf("cudaFree - %s\n", cudaGetErrorName(errorCode));
-	checkDeviceMemory();
+	printf("Data in device:");
+	// 데이터 출력. 1개 블럭(?) 스레드 10개만큼 -> dDataPtr
+	printData <<<1, 10 >>> (dDataPtr);
+
+	// 메모리 복사. data(Host) -> dDataPtr(Device) 를 int 10만큼
+	cudaMemcpy(dDataPtr, data, sizeof(int) * 10, cudaMemcpyHostToDevice);
+	printf("\nHost -> Device: ");
+	printData << <1, 10 >> > (dDataPtr);
+
+	setData << <1, 10 >>>(dDataPtr);
+	
+	// 메모리 복사.
+	cudaMemcpy(data, dDataPtr, sizeof(int) * 10, cudaMemcpyDeviceToHost);
+	printf("\nDevice -> Host: ");
+	for (int i = 0; i < 10; i++) printf("%d", data[i]);
+
+	cudaFree(dDataPtr);
 }
 
-Device memory(free / total) = 7506755584 / 8589475840 bytes
-cudaMalloc - cudaSuccess
-Device memory(free / total) = 7502561280 / 8589475840 bytes
-cudaMemset - cudaSuccess
-cudaFree - cudaSuccess
-Device memory(free / total) = 7506755584 / 8589475840 bytes
-
+Data in device : 0000000000
+Host->Device : 1111111111
+Device->Host : 2222222222
 
 -->
