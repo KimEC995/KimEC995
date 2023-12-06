@@ -44,52 +44,88 @@ Here are some ideas to get you started:
 
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
+
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-__global__ void printData(int* _dDataPtr)
-{
-	printf("%d", _dDataPtr[threadIdx.x]);
-}
+//벡터의 크기는 기호상수(Symbolic Constant) 로 정의.
+#define NUM_DATA 1024
 
-__global__ void setData(int* _dDataPtr)
+//커널 정의(벡터연산)
+__global__ void vecADD(int* _a, int* _b, int* _c)
 {
-	_dDataPtr[threadIdx.x] = 2;
+	//thread ID
+	tID = threadIdx.x;
+	//연산
+	_c[tID] = _a[tID] + _b[tID];
 }
 
 int main(void)
 {
-	int data[10] = { 0 };
-	for (int i = 0; i < 10; i++) data[i] = 1;
+	int* a, * b, * c, * hc;    //Host벡터
+	int* da, * db, * dc;       //Device 벡터
 
-	int* dDataPtr;
-
-	// 메모리 공간 할당. dDataPtr int 10만큼
-	cudaMalloc(&dDataPtr, sizeof(int) * 10);
-
-	// 초기화
-	cudaMemset(dDataPtr, 0, sizeof(int) * 10);
-
-	printf("Data in device:");
-	// 데이터 출력. 1개 블럭(?) 스레드 10개만큼 -> dDataPtr
-	printData <<<1, 10 >>> (dDataPtr);
-
-	// 메모리 복사. data(Host) -> dDataPtr(Device) 를 int 10만큼
-	cudaMemcpy(dDataPtr, data, sizeof(int) * 10, cudaMemcpyHostToDevice);
-	printf("\nHost -> Device: ");
-	printData << <1, 10 >> > (dDataPtr);
-
-	setData << <1, 10 >>>(dDataPtr);
-	
-	// 메모리 복사.
-	cudaMemcpy(data, dDataPtr, sizeof(int) * 10, cudaMemcpyDeviceToHost);
-	printf("\nDevice -> Host: ");
-	for (int i = 0; i < 10; i++) printf("%d", data[i]);
-
-	cudaFree(dDataPtr);
+	int memSize = sizeof(int)* NUM_DATA;
+	printf("%d elements, memSize = %d bytes \n", NUM_DATA, memSize);
 }
 
-Data in device : 0000000000
-Host->Device : 1111111111
-Device->Host : 2222222222
+// Host단에서 할당, 초기화0
+a = new int[NUM_DATA]; memset(a, 0, memSize);
+b = new int[NUM_DATA]; memset(a, 0, memSize);
+c = new int[NUM_DATA]; memset(a, 0, memSize);
+hc = new int[NUM_DATA]; memset(a, 0, memSize);
 
+// 난수 할당
+for (int i=0; i < NUM_DATA; i++)
+{
+	a[i] = rand() % 10;
+	b[i] = rand() % 10;
+}
+
+// 비교용: Host단에서 연산해보기(직렬연산)
+for (int i = 0; i < NUM_DATA; i++)
+{
+	hc[i] = a[i] + b[i];
+}
+
+// Device 메모리 할당, 초기화
+cudaMalloc(&da, memSize); cudamemset(da, 0, memSize);
+cudaMalloc(&db, memSize); cudamemset(db, 0, memSize);
+cudaMalloc(&dc, memSize); cudamemset(dc, 0, memSize);
+
+// 벡터 복사(Host -> Device)
+cudaMemcpy(da, a, memSize, cudaMemcpyHostToDevice);
+cudaMemcpy(db, b, memSize, cudaMemcpyHostToDevice);
+
+// 커널 호출
+vecADD<<<1, NUM_DATA>>> (da, db, dc);
+
+// 벡터 복사(Device -> Host)
+cudaMemcpy(c, dc, memSize, cudaMemcpDeviceToHost);
+
+// Device 메모리 해제
+cudaFree(da);
+cudaFree(db);
+cudaFree(dc);
+
+// 연산 결과 비교
+bool result = true;
+for (int i = 0; i < NUM_DATA; i++)
+{
+	if (c[i] != hc[i])
+	{
+		printf("[%d] Result Not Matched!! (%d, %d)\n", i, c[i], hc[i]);
+		result = false;
+	}
+}
+if (result)
+	printf("GPU Works Well\n");
+
+// Host 메모리 해제
+delete[] a;
+delete[] b;
+delete[] c;
+
+return 0;
 -->
