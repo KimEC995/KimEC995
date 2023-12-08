@@ -66,6 +66,17 @@ __global__ void vecADD(int* _a, int* _b, int* _c, int _size)
 
 int main(void)
 {
+	//Set Timer
+	DS_timer timer(5);
+	timer.setTimerName(0, (char*)"CUDA Total-----------------:");
+	timer.setTimerName(1, (char*)"Computation(Kernel)--------:");
+	timer.setTimerName(2, (char*)"Data Trans. Host -> Device-:");
+	timer.setTimerName(3, (char*)"Data Trans. Device -> Host-:");
+	timer.setTimerName(4, (char*)"VecAdd on Host-------------:");
+
+	//타이머 초기화
+	timer.initTimers();
+ 
 	int* a, * b, * c, * hc;    //Host벡터
 	int* da, * db, * dc;       //Device 벡터
 
@@ -86,34 +97,49 @@ int main(void)
 	}
 
 	// 비교용: Host단에서 연산해보기(직렬연산)
+ 	timer.onTimer(4);    // VecAdd on Host 타이머 시작
 	for (int i = 0; i < NUM_DATA; i++)
 	{
 		hc[i] = a[i] + b[i];
 	}
+	timer.offTimer(4);    // VecAdd on Host 타이머 끝
 
 	// Device 메모리 할당, 초기화
 	cudaMalloc(&da, memSize); cudaMemset(da, 0, memSize);
 	cudaMalloc(&db, memSize); cudaMemset(db, 0, memSize);
 	cudaMalloc(&dc, memSize); cudaMemset(dc, 0, memSize);
 
+	timer.onTimer(0);    // CUDA Total 타이머 시작
+ 
 	// 벡터 복사(Host -> Device)
+ 	timer.onTimer(2);    // Data Trans. Host -> Device 타이머 시작
 	cudaMemcpy(da, a, memSize, cudaMemcpyHostToDevice);
 	cudaMemcpy(db, b, memSize, cudaMemcpyHostToDevice);
+	timer.offTimer(2);    // Data Trans. Host -> Device 타이머 끝
 
 	//스레드 레이아웃 설정
 	dim3 dimGrid(ceil((float)NUM_DATA / 256), 1, 1);
 	dim3 dimBlock(256, 1, 1);
 
 	// 커널 호출
+ 	timer.onTimer(1);    // Computation(Kernel) 타이머 시작
 	vecADD <<< dimGrid, dimBlock>> > (da, db, dc, NUM_DATA);
+	timer.offTimer(1);    // Computation(Kernel) 타이머 끝
 
 	// 벡터 복사(Device -> Host)
+ 	timer.onTimer(3);    // Data Trans. Device -> Host 타이머 시작
 	cudaMemcpy(c, dc, memSize, cudaMemcpyDeviceToHost);
+	timer.offTimer(3);    // Data Trans. Device -> Host 타이머 끝
 
 	// Device 메모리 해제
 	cudaFree(da);
 	cudaFree(db);
 	cudaFree(dc);
+
+ 	timer.offTimer(0);    // CUDA Total 타이머 끝
+
+  	// 타이머 출력
+	timer.printTimer();
 
 	// 연산 결과 비교
 	bool result = true;
