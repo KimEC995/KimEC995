@@ -48,16 +48,19 @@ Here are some ideas to get you started:
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 //벡터의 크기는 기호상수(Symbolic Constant) 로 정의.
-#define NUM_DATA 1024
+#define NUM_DATA 104857
 
 //커널 정의(벡터연산)
-__global__ void vecADD(int* _a, int* _b, int* _c)
+__global__ void vecADD(int* _a, int* _b, int* _c, int _size)
 {
 	//thread ID
-	int tID = threadIdx.x;
+	int tID = (blockIdx.x * blockDim.x) + threadIdx.x;
+
 	//연산
+	if(tID < _size)
 	_c[tID] = _a[tID] + _b[tID];
 }
 
@@ -97,8 +100,12 @@ int main(void)
 	cudaMemcpy(da, a, memSize, cudaMemcpyHostToDevice);
 	cudaMemcpy(db, b, memSize, cudaMemcpyHostToDevice);
 
+	//스레드 레이아웃 설정
+	dim3 dimGrid(ceil((float)NUM_DATA / 256), 1, 1);
+	dim3 dimBlock(256, 1, 1);
+
 	// 커널 호출
-	vecADD <<<1, NUM_DATA >>> (da, db, dc);
+	vecADD <<< dimGrid, dimBlock>> > (da, db, dc, NUM_DATA);
 
 	// 벡터 복사(Device -> Host)
 	cudaMemcpy(c, dc, memSize, cudaMemcpyDeviceToHost);
@@ -119,7 +126,7 @@ int main(void)
 		}
 	}
 	if (result)
-	printf("GPU Works Well\n");
+		printf("GPU Works Well\n");
 
 	// Host 메모리 해제
 	delete[] a;
@@ -128,7 +135,4 @@ int main(void)
 
 	return 0;
 }
-
-1024 elements, memSize = 4096 bytes
-GPU Works Well
 -->
