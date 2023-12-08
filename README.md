@@ -45,13 +45,15 @@ Here are some ideas to get you started:
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
+#include "DS_timer.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
 //벡터의 크기는 기호상수(Symbolic Constant) 로 정의.
-#define NUM_DATA 104857
+#define NUM_DATA 134217728
 
 //커널 정의(벡터연산)
 __global__ void vecADD(int* _a, int* _b, int* _c, int _size)
@@ -60,8 +62,8 @@ __global__ void vecADD(int* _a, int* _b, int* _c, int _size)
 	int tID = (blockIdx.x * blockDim.x) + threadIdx.x;
 
 	//연산
-	if(tID < _size)
-	_c[tID] = _a[tID] + _b[tID];
+	if (tID < _size)
+		_c[tID] = _a[tID] + _b[tID];
 }
 
 int main(void)
@@ -76,7 +78,7 @@ int main(void)
 
 	//타이머 초기화
 	timer.initTimers();
- 
+
 	int* a, * b, * c, * hc;    //Host벡터
 	int* da, * db, * dc;       //Device 벡터
 
@@ -97,7 +99,7 @@ int main(void)
 	}
 
 	// 비교용: Host단에서 연산해보기(직렬연산)
- 	timer.onTimer(4);    // VecAdd on Host 타이머 시작
+	timer.onTimer(4);    // VecAdd on Host 타이머 시작
 	for (int i = 0; i < NUM_DATA; i++)
 	{
 		hc[i] = a[i] + b[i];
@@ -110,9 +112,9 @@ int main(void)
 	cudaMalloc(&dc, memSize); cudaMemset(dc, 0, memSize);
 
 	timer.onTimer(0);    // CUDA Total 타이머 시작
- 
+
 	// 벡터 복사(Host -> Device)
- 	timer.onTimer(2);    // Data Trans. Host -> Device 타이머 시작
+	timer.onTimer(2);    // Data Trans. Host -> Device 타이머 시작
 	cudaMemcpy(da, a, memSize, cudaMemcpyHostToDevice);
 	cudaMemcpy(db, b, memSize, cudaMemcpyHostToDevice);
 	timer.offTimer(2);    // Data Trans. Host -> Device 타이머 끝
@@ -122,12 +124,12 @@ int main(void)
 	dim3 dimBlock(256, 1, 1);
 
 	// 커널 호출
- 	timer.onTimer(1);    // Computation(Kernel) 타이머 시작
-	vecADD <<< dimGrid, dimBlock>> > (da, db, dc, NUM_DATA);
+	timer.onTimer(1);    // Computation(Kernel) 타이머 시작
+	vecADD << < dimGrid, dimBlock >> > (da, db, dc, NUM_DATA);
 	timer.offTimer(1);    // Computation(Kernel) 타이머 끝
 
 	// 벡터 복사(Device -> Host)
- 	timer.onTimer(3);    // Data Trans. Device -> Host 타이머 시작
+	timer.onTimer(3);    // Data Trans. Device -> Host 타이머 시작
 	cudaMemcpy(c, dc, memSize, cudaMemcpyDeviceToHost);
 	timer.offTimer(3);    // Data Trans. Device -> Host 타이머 끝
 
@@ -136,9 +138,9 @@ int main(void)
 	cudaFree(db);
 	cudaFree(dc);
 
- 	timer.offTimer(0);    // CUDA Total 타이머 끝
+	timer.offTimer(0);    // CUDA Total 타이머 끝
 
-  	// 타이머 출력
+	// 타이머 출력
 	timer.printTimer();
 
 	// 연산 결과 비교
@@ -161,4 +163,18 @@ int main(void)
 
 	return 0;
 }
+
+134217728 elements, memSize = 536870912 bytes
+
+* DS_timer Report *
+*The number of timer = 5, counter = 5
+* ***Timer report * ***
+CUDA Total---------------- - : : 295.51350 ms
+Computation(Kernel)-------- : : 0.76600 ms
+Data Trans.Host->Device - : : 194.89870 ms
+Data Trans.Device->Host - : : 86.40610 ms
+VecAdd on Host------------ - : : 628.71980 ms
+* ***Counter report * ***
+*End of the report *
+GPU Works Well
 -->
