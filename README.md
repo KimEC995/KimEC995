@@ -42,6 +42,7 @@ Here are some ideas to get you started:
 - 😄 Pronouns: ...
 - ⚡ Fun fact: ...
 
+-->
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
@@ -71,5 +72,3 @@ int main(void)
 
 	return 0;
 }
-
--->
