@@ -70,6 +70,6 @@ int main(void)
 
 	// 커널 호출
 	vecADD <<< dimGrid, dimBlock >>> ();
-
+block
 	return 0;
 }
