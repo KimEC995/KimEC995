@@ -1,3 +1,4 @@
+<!--
 ## READ ME 👋
 
 `2014 - 2018` 
@@ -29,7 +30,7 @@
 
 - Pi Nas 개인형 나스서버 구축
 > `Linux` 서버 구축 및 관리
-<!--
+
 **KimEC995/KimEC995** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 
 Here are some ideas to get you started:
