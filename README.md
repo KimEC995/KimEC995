@@ -43,35 +43,48 @@ Here are some ideas to get you started:
 - 📫 How to reach me: ...
 - 😄 Pronouns: ...
 - ⚡ Fun fact: ...
+24.04.11
+===========================================
 
+내일(12일) 우선 할 일
 
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
+- 1호기 VS 2호기 VS 3호기 데이터 비교
+- 카메라 4호기 찾기 -> 80도
+- 1호기 복구(확인 후 현인사장님께 검토)
 
-#include "DS_timer.h"
+===========================================
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
+- 다날 카메라 1호기 탈락 이유
+	- 화질 나쁨
+		이유 예상
+		1. 통제된 환경 아니었음
+		2. 어지러움, 잔상 등 다날 측에서 안 익숙함
+		3. 모바일로 가면 개선 가능 예상 -> 지가 잘 보려고 움직임 -> 화질 열화도 모바일이라 쉴드 가능
 
-//벡터의 크기는 기호상수(Symbolic Constant) 로 정의.
-#define NUM_DATA 10300	
+- 카메라 비교 테스트 1호기 VS 3호기
+	- 동일 거리 내 촬영 시 물체 간격 비교
+	- 렌즈 피치에 따른 화질 개선
+	- 포커스 존 외부 화질 비교
 
-//커널 정의(벡터연산)
-__global__ void vecADD(void)
-{
-	printf("BlockIdx.x: %d, BlockIdx.y: %d\n", blockIdx.x, blockIdx.y);
-}
+- 카메라(3호기)
+	: 간격 2.8cm 렌즈 피치
+	- 화각 1호기에 비해 지나치게 좁음(1/2배정도)
+		- 보여야할게 안보임 => 어지러움
+	- 장점: 포커싱 범위 내 훌륭한 입체감
+	- 컬러 범위: 2호기 제외 괜찮음
+	- 가로 세로비율 문제. 가로로 퍼져보임
+	- 카메라 번호 반대로 매치 됨 -> 하드웨어 조립 잘 하기
 
-int main(void)
-{	//스레드 레이아웃 설정
-	dim3 dimGrid(NUM_DATA, NUM_DATA, 1);
-	dim3 dimBlock(1, 1, 1);
+- 카메라 3호기 고정대 모델링 수정
+	- 흔들거림
 
-	// 커널 호출
-	vecADD <<< dimGrid, dimBlock >>> ();
-block
-	return 0;
-}
---!>
+- 필터
+	- 5픽셀 디테일 떨어짐 -> 새거 만드는거 비쌈 -> 보류
+
+- 소프트웨어
+	- 카메라 잔상(메모리 누수?, 딜레이)
+	- 카메라 모바일 실시간 스트림
+		- 노트 20기준 필터 가지고있음
+			-> 당근 노트 20
+		- 핸드폰 화면으로 스트림하기
+	- 모바일 VLC 혹은 전송시 압출률 개선
